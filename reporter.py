@@ -2,12 +2,11 @@ from openpyxl import Workbook
 from openpyxl import load_workbook
 from tqdm import tqdm
 from dateutil import parser
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Font
 from openpyxl.writer.write_only import WriteOnlyCell
 import os
 import re
-
-
+from logger import Logger
 
 
 def get_data(filename):
@@ -15,7 +14,11 @@ def get_data(filename):
     wb = load_workbook(filename, read_only=True)
     ws = wb.active
     logs_list = {}
-    if ws.cell(row=1, column=1).value[:7] == 'Проходы':
+    if ws.cell(row=5, column=1).value == 'Сотрудник'\
+            and ws.cell(row=5, column=3).value == 'Таб. номер'\
+            and ws.cell(row=5, column=6).value == 'Время события'\
+            and ws.cell(row=5, column=7).value == 'Событие'\
+            and ws.cell(row=5, column=8).value == 'Точка доступа':
         log_date = ws.cell(row=6, column=6).value.split(' ')[0].strip()
         pbar = tqdm(total=ws.max_row)
         pbar.update(6)
@@ -61,6 +64,8 @@ def get_data(filename):
 
             pbar.update(1)
             i += 1
+    else:
+        pass
 
     return logs_list
 
@@ -109,10 +114,13 @@ if __name__ == '__main__':
             files.append(file)
     if files.__len__() > 0:
         for filename in files:
-            unsorted_logs = get_data(filename)
-            if unsorted_logs.__len__() > 0:
-                make_report(unsorted_logs, filename)
+            if not os.path.isfile(os.path.join(BASEDIR, 'export_' + filename)):
+                unsorted_logs = get_data(filename)
+                if unsorted_logs.__len__() > 0:
+                    make_report(unsorted_logs, filename)
+                else:
+                    Logger.logger.warning('Файл \"' + filename + '\" не содержит отчета, либо имеет не правильную структуру')
             else:
-                print('Файл ' + filename + ' не содержит отчета. Свяжитесь с разработчиком программы')
+                Logger.logger.warning('Файл \"' + filename + '\" уже исправлен')
     else:
-        print('Не найдены файлы отчетов. Убедитесь что названия файлов начинаются с цифры')
+        Logger.logger.warning('Не найдены файлы отчетов. Убедитесь что названия файлов начинаются с цифры')
