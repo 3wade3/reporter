@@ -40,27 +40,31 @@ def get_data(filename):
                     'log_time': log_time
                 }
 
-            log = []
+            log = {}
             if event == 'Вход':
-                log.insert(0, log_item)
+                log.update({
+                    'enter': log_item
+                })
             else:
-                log.insert(1, log_item)
+                log.update({
+                    'exit': log_item
+                })
 
             if not tab_number in logs_list.keys():
                 logs_list[tab_number] = log
             else:
                 if event == 'Вход':
                     try:
-                        if (parser.parse(log_time) < parser.parse(logs_list[tab_number][0]['log_time'])):
-                            logs_list[tab_number].insert(0, log)
-                    except IndexError:
-                        logs_list[tab_number].insert(0, log)
+                        if (parser.parse(log_time) < parser.parse(logs_list[tab_number]['enter']['log_time'])):
+                            logs_list[tab_number].update(log)
+                    except KeyError:
+                        logs_list[tab_number].update(log)
                 elif event == 'Выход':
                     try:
-                        if (parser.parse(log_time) > parser.parse(logs_list[tab_number][1]['log_time'])):
-                            logs_list[tab_number].insert(1, log[0])
-                    except IndexError:
-                        logs_list[tab_number].insert(1, log[0])
+                        if (parser.parse(log_time) > parser.parse(logs_list[tab_number]['exit']['log_time'])):
+                            logs_list[tab_number].update(log)
+                    except KeyError:
+                        logs_list[tab_number].update(log)
 
             pbar.update(1)
             i += 1
@@ -98,7 +102,13 @@ def make_report(logs_list, filename):
     ws.append([cell1, cell2, cell3, cell4, cell5, cell6, cell7])
 
     for log in logs_list.values():
-        ws.append([log[0]['tab_number'], log[0]['employee'], log[0]['log_date'], log[0]['log_time'], log[1]['log_time'], log[0]['ap'], log[1]['ap']])
+
+        if 'enter' in log and 'exit' in log:
+            ws.append([log['enter']['tab_number'], log['enter']['employee'], log['enter']['log_date'], log['enter']['log_time'], log['exit']['log_time'], log['enter']['ap'], log['exit']['ap']])
+        elif not 'enter' in log and 'exit' in log:
+            ws.append([log['exit']['tab_number'], log['exit']['employee'], log['exit']['log_date'], ' ', log['exit']['log_time'], ' ', log['exit']['ap']])
+        elif 'enter' in log and not 'exit' in log:
+            ws.append([log['enter']['tab_number'], log['enter']['employee'], log['enter']['log_date'], log['enter']['log_time'], ' ', log['enter']['ap'], ' '])
 
     wb.save('export_' + filename)
 
