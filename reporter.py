@@ -70,13 +70,6 @@ def get_data(filename):
     return logs_list
 
 
-def sort_data(unsorted_logs):
-
-    sorted_logs = {}
-
-    return sorted_logs
-
-
 def make_report(logs_list, filename):
     wb = Workbook(write_only=True)
     ws = wb.create_sheet('Экспорт')
@@ -96,12 +89,16 @@ def make_report(logs_list, filename):
     cell5 = WriteOnlyCell(ws, value='Время последнего выхода из здания')
     cell5.font = font
     ws.column_dimensions['E'].width = 20
-    cell6 = WriteOnlyCell(ws, value='Точка')
+    cell6 = WriteOnlyCell(ws, value='Точка входа')
     cell6.font = font
-    ws.column_dimensions['F'].width = 10
-    ws.append([cell1, cell2, cell3, cell4, cell5, cell6])
+    ws.column_dimensions['F'].width = 15
+    cell7 = WriteOnlyCell(ws, value='Точка выхода')
+    cell7.font = font
+    ws.column_dimensions['G'].width = 15
+    ws.append([cell1, cell2, cell3, cell4, cell5, cell6, cell7])
+
     for log in logs_list.values():
-        ws.append([log[0]['tab_number'], log[0]['employee'], log[0]['log_date'], log[0]['log_time'], log[1]['log_time'], log[1]['ap']])
+        ws.append([log[0]['tab_number'], log[0]['employee'], log[0]['log_date'], log[0]['log_time'], log[1]['log_time'], log[0]['ap'], log[1]['ap']])
 
     wb.save('export_' + filename)
 
